@@ -1,0 +1,48 @@
+#!/bin/sh
+
+#$1 hostname
+name=$1
+####change hostname#####
+hostname -b $name
+echo $name > /etc/hostname
+/etc/init.d/hostname.sh start
+
+##get host IP ##
+host_ip=$(ifconfig ma1|grep "inet addr:"|cut -d : -f 2|cut -d " " -f 1)
+echo $host_ip
+
+####collectd config file####
+rm /etc/collectd/collectd.conf.d/10-default.conf
+cat <<EOF >>/etc/collectd/collectd.conf.d/10-default.conf
+Interval 5
+WriteThreads 1
+Hostname "$host_ip"
+LoadPlugin network
+LoadPlugin interface
+LoadPlugin load
+LoadPlugin cpu
+LoadPlugin memory
+LoadPlugin df
+<Plugin network>
+  <server 127.0.0.1 "25826">
+  </server>
+</Plugin>
+<Plugin interface>
+        Interface "enp0s3"
+        IgnoreSelected false
+</Plugin>
+<Plugin df>
+  MountPoint "/"
+  FSType "ext3"
+  ValuesPercentage true
+</Plugin>
+<Plugin memory>
+        ValuesPercentage false
+</Plugin>
+<Plugin cpu>
+        ReportByState true
+        ReportByCpu false
+        ValuesPercentage false
+</Plugin>
+EOF
+/etc/init.d/collectd restart
