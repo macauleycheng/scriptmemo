@@ -1,0 +1,11 @@
+#!/bin/bash
+count=0
+for i in {1..100}; do
+  for j in {1..200}; do
+     a=$( printf "%x" $i )
+     b=$( printf "%x" $j )
+     mac=00:00:00:22:$a:$b
+     ./dpctl tcp:192.168.1.10:6633 flow-mod table=50,cmd=add,prio=301 eth_dst=$mac,vlan_vid=2 write:out=ctrl goto:60
+     #echo $mac
+  done;
+done;
