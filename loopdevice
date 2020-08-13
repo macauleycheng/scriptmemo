@@ -5,3 +5,19 @@ do
 echo $i
 sshpass -p nova ssh -t manager@$i sudo shutdown -h now
 done
+
+
+
+#!/bin/bash
+ips=(192.168.200.14 192.168.200.18 192.168.200.9 192.168.200.63 192.168.200.64)
+ctrl_ip=192.168.40.1
+ofdpa_package=ofdpa_3.0.5.5+accton2.10~1-5cd0054_armel.deb
+
+for i in ${ips[*]};
+do
+echo $i
+
+sshpass -p onl ssh -t root@$i service ofagentd stop; sleep 10;ps aux |grep ofagent |xargs kill -9;ps aux|grep ofagent |xargs kill -9
+scp $ofdpa_package $ip:/root
+sshpass -p onl ssh -t root@$i dpkg -i /root/$ofdpa_package; sleep 10; service ofagentd restart &
+done
