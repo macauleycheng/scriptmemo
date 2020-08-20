@@ -21,3 +21,19 @@ sshpass -p onl ssh -t root@$i service ofagentd stop; sleep 10;ps aux |grep ofage
 scp $ofdpa_package $ip:/root
 sshpass -p onl ssh -t root@$i dpkg -i /root/$ofdpa_package; sleep 10; service ofagentd restart &
 done
+
+
+
+#!/bin/bash
+#ips=(192.168.40.188 192.168.40.126 192.168.40.223)
+ips=(192.168.40.188)
+
+for i in ${ips[*]};
+do
+echo $i
+  for p in {1..54}
+  do
+    printf -v hexval "%x" $(($p + 65536))
+    ./dpctl tcp:$i:6653 group-mod cmd=add,type=ind,group=0x$hexval group=any,port=any,weight=100 output=$p,pop_vlan
+  done
+done
