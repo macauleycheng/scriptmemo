@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#max hosts can't over 254
+NO_HOSTS=4
+#local host IP addres subnet
+SUBNET=192.168.10.
+#ping target host IP address
+TARGET=192.168.20.
+
+for i in $(seq 1 $NO_HOSTS);
+do
+  echo "create host"
+  ip net add host$i
+  #use below to enter namespace, it will has prefix to identify
+  #ip netns exec host$i /bin/bash --rcfile <(echo "PS1=\"namespace host$i> \"")
+done
+
+echo "add bridge"
+ip link add br0 type bridge stp_state 0
+ip link set dev br0 up
+
+
+for i in $(seq 1 $NO_HOSTS);
+do
+  echo "create link host${i}_leth"
+  ip link add host${i}_leth type veth peer name host${i}_peth
+  echo "bind host$ interface"
+  ip link set host${i}_leth netns host$i
+  ip net exec host$i ifconfig host${i}_leth up
+  echo "add host ip address"
+  ip net exec host$i ifconfig host${i}_leth ${SUBNET}$i
+  echo "bind to brdige"
+  ip link set dev host${i}_peth master br0
+  ip link set dev host${i}_peth up
+done
+
+
+
+
+
+
+#!/bin/bash
+
+NO_HOSTS=4
+
+for i in $(seq 1 $NO_HOSTS);
+do
+  ip net delete host$i
+done
+
+
+for i in $(seq 1 $NO_HOSTS);
+do
+  ip link delete host${i}_leth
+done
+
+ip link delete br0
+~
