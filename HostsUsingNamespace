@@ -11,7 +11,7 @@ for i in $(seq 1 $NO_HOSTS);
 do
   echo "create host"
   ip net add host$i
-  ip net exec ifconfig lo up
+  ip net exec host$i ifconfig lo up
   #use below to enter namespace, it will has prefix to identify
   #ip netns exec host$i /bin/bash --rcfile <(echo "PS1=\"namespace host$i> \"")
 done
