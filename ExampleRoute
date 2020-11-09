@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ "$1" = "" ]; then
+
+
+#host1-(h1_leth)----(h1_r)--r0 -(r_r0)-----------------(r_r1)- r1 -(h2_r)--------(h2_leth)- host2
+#192.168.10.1 ------192.168.10.2-192.168.20.1---------192.168.20.2--192.168.30.2-------------192.168.30.1
+ip net add host1
+ip net exec host1 ifconfig lo up
+ip net add host2
+ip net exec host2 ifconfig lo up
+ip net add r0
+ip net exec r0 ifconfig lo up
+ip net add r1
+ip net exec r1 ifconfig lo up
+
+ip link add h1_leth type veth peer name h1_r
+ip link add h2_leth type veth peer name h2_r
+ip link add r_r0 type veth peer name r_r1
+
+ip link set h1_leth netns host1
+ip net exec host1 ifconfig h1_leth 192.168.10.1/24
+ip link set h2_leth netns host2
+ip net exec host2 ifconfig h2_leth 192.168.30.1/24
+
+ip link set h1_r netns r0
+ip net exec r0 ifconfig h1_r 192.168.10.2/24
+ip link set h2_r netns r1
+ip net exec r1 ifconfig h2_r 192.168.30.2/24
+ip link set r_r0 netns r0
+ip net exec r0 ifconfig r_r0 192.168.20.1/24
+ip link set r_r1 netns r1
+ip net exec r1 ifconfig r_r1 192.168.20.2/24
+
+else
+ip net delete host1
+ip net delete host2
+ip net delete r0
+ip net delete r1
+ip link delete h1_leth
+ip link delete h2_leth
+ip link delete r_r0
+fi
+
