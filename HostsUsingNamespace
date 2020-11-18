@@ -5,7 +5,7 @@ NO_HOSTS=4
 #local host IP addres subnet
 SUBNET=192.168.10.
 #ping target host IP address
-TARGET=192.168.20.
+TARGET=192.168.20.1
 
 for i in $(seq 1 $NO_HOSTS);
 do
@@ -36,7 +36,11 @@ do
 done
 
 
-
+screen -dmS test
+for i in $(seq 1 $NO_HOSTS);
+do 
+  screen -S test -X screen -t "host$i" ping $TARGET 
+done
 
 
 
