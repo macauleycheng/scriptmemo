@@ -1,0 +1,18 @@
+FROM ubuntu:20.04
+MAINTAINER macauley_cheng <macauleycheng@gmail.com>
+
+RUN apt-get update
+RUN apt-get install -y git python2.7 curl build-essential
+RUN ln -s /bin/python2.7 /bin/python
+RUN curl https://bootstrap.pypa.io/get-pip.py --output get-pip.py
+RUN python2.7 get-pip.py
+RUN echo 10 > apt-get install -y graphviz
+RUN pip install --upgrade setuptools
+RUN pip install pyang
+
+WORKDIR /root
+
+RUN git clone https://github.com/CiscoDevNet/yang-explorer.git
+RUN cd yang-explorer && bash setup.sh -y
+
+ENTRYPOINT ["/root/yang-explorer/start.sh"]
