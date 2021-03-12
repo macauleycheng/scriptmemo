@@ -1,0 +1,44 @@
+#!/bin/python
+  
+import requests, json, struct
+import genet_topo
+
+
+MARS_URL="http://192.168.137.10:8181/mars/v1/devices"
+HEADERS={"Content-Type":"application/json"}
+
+device = {"id":"of:0000000000000003",
+          "mac":"00:00:00:00:00:03",
+          "name":"sw3",
+          "type":"leaf",
+          "available":True,
+          "defautCfg":True,
+          "leaf_group":{"name":"","switch_port":""},
+          "rack_id":"",
+          "nos":"centec",
+          "mfr":"",
+          "managementAddress":"192.168.137.10",
+          "protocol":"of",
+          "mgmtPort":0}
+
+
+
+try:
+
+    for i in xrange(1, genet_topo.MAX_SWITCHES+1):
+      device['id'] = "of:000000000000%04x"% i
+      if i < 255:
+        device['mac']= "00:00:00:00:00:%02x"%i
+      if i > 255:
+        device['mac'] = "00:00:00:00:%02x:%02x"%(i/255, i%255)
+
+      device['name'] = "sw"+str(i)
+      print json.dumps(device)
+
+      response = requests.post(MARS_URL, headers=HEADERS, data=json.dumps(device), auth=("karaf", "karaf"))
+
+      #response.raise_for_status()
+      print response
+
+except Exception as ex:
+    raise ex
