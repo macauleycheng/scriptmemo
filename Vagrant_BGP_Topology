@@ -1,0 +1,174 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = "bento/ubuntu-18.04"
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+  config.vm.network "public_network", bridge: "eno3", type: "dhcp"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+   config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+     vb.cpus = 2
+     vb.memory = "4096"
+   end
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+   config.vm.provision "shell", inline: <<-SHELL
+     if [ "$(dpkg -l|grep frr)" = "" ]; then
+       apt-get update -y
+       apt-get install -y git 
+       curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
+       echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) "frr-stable" | sudo tee -a /etc/apt/sources.list.d/frr.list
+       apt-get update -y && sudo apt-get install -y frr frr-pythontools
+    fi
+    sed  -i "s/bgpd=no/bgpd=yes/g" /etc/frr/daemons
+    service frr restart
+   SHELL
+
+  config.vm.define "s1" do |spine1|
+    spine1.vm.hostname = "spine1"
+    spine1.vm.network "private_network", virtualbox__intnet: "c1_s1", auto_config: true
+    spine1.vm.network "private_network", virtualbox__intnet: "s1_l1", auto_config: true
+    spine1.vm.network "private_network", virtualbox__intnet: "s1_l2", auto_config: true
+    spine1.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.2/32
+    vtysh -c "config terminal" -c "router bgp 3000"  -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.2/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
+
+    SHELL
+  end
+  config.vm.define "s2" do |spine2|
+    spine2.vm.hostname = "spine2"
+    spine2.vm.network "private_network", virtualbox__intnet: "c1_s2", auto_config: true
+    spine2.vm.network "private_network", virtualbox__intnet: "s2_l1", auto_config: true
+    spine2.vm.network "private_network", virtualbox__intnet: "s2_l2", auto_config: true
+    spine2.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.3/32
+    vtysh -c "config terminal" -c "router bgp 3000"  -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.3/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
+    SHELL
+  end
+  config.vm.define "l1" do |leaf1|
+    leaf1.vm.hostname = "leaf1"
+    leaf1.vm.network "private_network", virtualbox__intnet: "s1_l1", auto_config: true
+    leaf1.vm.network "private_network", virtualbox__intnet: "s2_l1", auto_config: true
+    leaf1.vm.network "private_network", virtualbox__intnet: "l1_h1", auto_config: true
+    leaf1.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.4/32
+    vtysh -c "config terminal" -c "router bgp 3001" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.4/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
+    SHELL
+  end
+  config.vm.define "l2" do |leaf2|
+    leaf2.vm.hostname = "leaf2"
+    leaf2.vm.network "private_network", virtualbox__intnet: "s2_l2",  auto_config: true
+    leaf2.vm.network "private_network", virtualbox__intnet: "s1_l2",  auto_config: true
+    leaf2.vm.network "private_network", virtualbox__intnet: "l2_h2",  auto_config: true
+    leaf2.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.5/32
+    vtysh -c "config terminal" -c "router bgp 3002" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.5/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
+    SHELL
+  end
+  config.vm.define "c1" do |core1|
+    core1.vm.hostname = "core1"
+    core1.vm.network "private_network", virtualbox__intnet: "c1_s1", auto_config: true
+    core1.vm.network "private_network", virtualbox__intnet: "c1_s2", auto_config: true
+    core1.vm.network "private_network", virtualbox__intnet: "c1_s3", auto_config: true
+    core1.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.1/32
+    vtysh -c "config terminal" -c "router bgp 4000" -c "address-family ipv4 unicast" -c "redistribute connected"  -c "exit-address-family" -c "network 10.10.0.1/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
+    SHELL
+  end
+  config.vm.define "s3" do |spine3|
+    spine3.vm.hostname = "spine3"
+    spine3.vm.network "private_network", virtualbox__intnet: "c1_s3", auto_config: true
+    spine3.vm.network "private_network", virtualbox__intnet: "s3_l3", auto_config: true
+    spine3.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.8/32
+    vtysh -c "config terminal" -c "router bgp 8000" -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.8/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"
+    SHELL
+  end
+  config.vm.define "l3" do |leaf3|
+    leaf3.vm.hostname = "leaf3"
+    leaf3.vm.network "private_network", virtualbox__intnet: "s3_l3", auto_config: true
+    leaf3.vm.network "private_network", virtualbox__intnet: "l3_h3", auto_config: true
+    leaf3.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.9/32
+    vtysh -c "config terminal" -c "router bgp 8001" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.9/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"
+    SHELL
+  end
+
+  config.vm.define "h1" do |host1|
+    host1.vm.hostname = "host1"
+    host1.vm.network "private_network", virtualbox__intnet: "l1_h1", auto_config: true
+    host1.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.6/32
+    vtysh -c "config terminal" -c "router bgp 5000" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.6/32" -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"
+    SHELL
+  end
+  config.vm.define "h2" do |host2|
+    host2.vm.hostname = "host2"
+    host2.vm.network "private_network", virtualbox__intnet: "l2_h2", auto_config: true
+    host2.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.7/32
+    vtysh -c "config terminal" -c "router bgp 6000" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.7/32" -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"
+    SHELL
+  end
+  config.vm.define "h3" do |host3|
+    host3.vm.hostname = "host3"
+    host3.vm.network "private_network", virtualbox__intnet: "l3_h3", auto_config: true
+    host3.vm.provision "shell", inline: <<-SHELL
+    ifconfig lo 10.10.0.10/32
+    vtysh -c "config terminal" -c "router bgp 7000"  -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.10/32" -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"
+    SHELL
+  end
+end
