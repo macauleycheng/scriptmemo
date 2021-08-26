@@ -1,0 +1,35 @@
+h1-br1-br2-h2
+    |   |
+    -br3-
+      |
+      h3
+
+ovs-vsctl add-br br1
+ovs-vsctl add-br br2
+ovs-vsctl add-br br3
+ovs-vsctl set-controller br1 tcp:192.168.40.2:6653
+ovs-vsctl set-controller br2 tcp:192.168.40.2:6653
+ovs-vsctl set-controller br3 tcp:192.168.40.2:6653
+sudo ovs-vsctl set bridge br1 protocols=OpenFlow13
+sudo ovs-vsctl set bridge br2 protocols=OpenFlow13
+sudo ovs-vsctl set bridge br3 protocols=OpenFlow13
+ip link add br1-br2 type veth peer name br2-br1
+ip link add br1-br3 type veth peer name br3-br1
+ip link add br2-br3 type veth peer name br3-br2
+ip net add host1
+ip net add host2
+ip net add host3
+ip link add h1-br1 type veth peer name br1-h1
+ip link add h2-br2 type veth peer name br2-h2
+ip link add h3-br3 type veth peer name br3-h3
+
+sudo ovs-vsctl add-port br1 br1-br2
+sudo ovs-vsctl add-port br1 br1-br3
+sudo ovs-vsctl add-port br2 br2-br1
+sudo ovs-vsctl add-port br2 br2-br3
+sudo ovs-vsctl add-port br3 br3-br1
+sudo ovs-vsctl add-port br3 br3-br2
+
+ip link set h1-br1 netns host1
+ip link set h2-br2 netns host2
+ip link set h3-br3 netns host3
