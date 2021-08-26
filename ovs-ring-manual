@@ -33,3 +33,16 @@ sudo ovs-vsctl add-port br3 br3-br2
 ip link set h1-br1 netns host1
 ip link set h2-br2 netns host2
 ip link set h3-br3 netns host3
+
+ip link set br1-br3 up
+ip link set br1-br2 up
+ip link set br2-br1 up
+ip link set br2-br3 up
+ip link set br3-br1 up
+ip link set br3-br2 up
+ip link set br1-h1 up
+ip link set br2-h2 up
+ip link set br3-h3 up
+ip netns exec host1 ifconfig h1-br1 up
+ip netns exec host2 ifconfig h2-br2 up
+ip netns exec host3 ifconfig h3-br3 up
