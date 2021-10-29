@@ -1,0 +1,37 @@
+from mininet.netimport Mininet
+from mininet.node import RemoteController, OVSKernelSwitch
+from mininet.cli import CLI
+
+SWITCH_NUM=5
+HOST_NUM=12
+
+HOST_NUM_PER_SWITCH_MIN=int(HOST_NUM/SWITCH_NUM)
+
+def topology():
+
+    net = Mininet( controller=RemoteController, switch=OVSKernelSwitch )
+
+    k= HOST_NUM % SWITCH_NUM
+    num= HOST_NUM_PER_SWITCH_MIN
+    for i in range(SWITCH_NUM):
+        net.addSwitch('s%s' % i)
+        if k>0 and i>(SWITCH_NUM-k-1):
+            num=HOST_NUM_PER_SWITCH_MIN+1
+        for j in range(num):
+            net.addLink('s%s' % i, net.addHost('h%s-%s' % (i, j)))
+
+    for i in range(SWITCH_NUM-1):
+        for j in range(i+1, SWITCH_NUM):
+            net.addLink('s%s' % i, 's%s' % j)
+
+
+    print( "*** Running CLI" )
+
+    CLI( net )
+
+    print( "*** Stop CLI")
+    net.stop()
+
+if __name__ == '__main__':
+
+    topology()
