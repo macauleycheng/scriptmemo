@@ -45,29 +45,39 @@ ip link set br$(($MAX_SWITCHES))-br1 up
 ovs-vsctl add-port br1 br1-br$(($MAX_SWITCHES))
 ovs-vsctl add-port br$(($MAX_SWITCHES)) br$(($MAX_SWITCHES))-br1
 
-
 echo "create host"
-ip net add host1
-ip net exec host1 ifconfig lo up
-#use below to enter namespace, it will has prefix to identify
-#ip netns exec host1 /bin/bash --rcfile <(echo "PS1=\"namespace host1> \"")
-ip net add host2
-ip net exec host2 ifconfig lo up
-#use below to enter namespace, it will has prefix to identify
-#ip netns exec host2 /bin/bash --rcfile <(echo "PS2=\"namespace host1> \"")
+MAX_HOSTS_A_SWITCH=500
+j=168
+k=1
+for i in $(seq 1 $MAX_HOSTS_A_SWITCH);
+do
+ip net add host$i
+ip net add host$(($MAX_HOSTS_A_SWITCH + $i))
+
 echo "create host link"
-ip link add host1_leth type veth peer name host1_peth
-ip link set host1_leth netns host1
-ip net exec host1 ifconfig host1_leth up
-ip link set dev host1_peth up
+ip link add host"$i"_leth type veth peer name host"$i"_peth
+ip link set host"$i"_leth netns host$i
+ip net exec host$i ifconfig host"$i"_leth up
+ip net exec host$i ifconfig host"$i"_leth 192.$j.$k.1/24
+ip link set dev host"$i"_peth up
 
-ip link add host2_leth type veth peer name host2_peth
-ip link set host2_leth netns host2
-ip net exec host2 ifconfig host2_leth up
-ip link set dev host2_peth up
+ip link add host"$(($MAX_HOSTS_A_SWITCH + $i))"_leth type veth peer name host"$(($MAX_HOSTS_A_SWITCH + $i))"_peth
+ip link set host"$(($MAX_HOSTS_A_SWITCH + $i))"_leth netns host$(($MAX_HOSTS_A_SWITCH + $i))
+ip net exec host"$(($MAX_HOSTS_A_SWITCH + $i))" ifconfig host"$(($MAX_HOSTS_A_SWITCH + $i))"_leth up
+ip net exec host"$(($MAX_HOSTS_A_SWITCH + $i))" ifconfig host"$(($MAX_HOSTS_A_SWITCH + $i))"_leth 192.$j.$k.2/24
+ip link set dev host"$(($MAX_HOSTS_A_SWITCH + $i))"_peth up
 
 
-ovs-vsctl add-port br1 host1_peth
-ovs-vsctl add-port br$(($MAX_SWITCHES)) host2_peth
+ovs-vsctl add-port br1 host"$i"_peth
+ovs-vsctl add-port br$(($MAX_SWITCHES)) host"$(($MAX_HOSTS_A_SWITCH + $i))"_peth
 
+k=$(($k +1))
+if [ $(($i % 255)) -eq 0 ];
+then
+   j=$(($j + 1))
+   k=1
+fi
+echo "k=$k, j=$j"
+
+done
 echo "done"
