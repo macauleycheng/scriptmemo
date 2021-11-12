@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-MAX_SWITCHES=50
+MAX_SWITCHES=3
 CTRL_IP=192.168.40.37
 
 curl  -i -XPOST http://$CTRL_IP/mars/useraccount/v1/login --header 'Content-Type: application/json' --header 'Accept: application/json' -d  '{"user_name":"karaf", "password":"karaf"}' > session_temp
@@ -16,3 +16,16 @@ for i in $(seq 1 $MAX_SWITCHES);
         datapath=$(printf "00000000000000%02x" $i)
         curl -H "Cookie: marsGSessionId=$token" -XDELETE http://$CTRL_IP/mars/v1/devices/of:$datapath
   done
+
+
+for i in $(seq 1 $(($MAX_SWITCHES -1)));
+  do
+     ip link delete br$i-br$(($i+1))
+     #ip link delete br$(($i+1))-br$i
+  done 
+
+
+ip netns delete host1
+ip netns delete host2
+ip link delete br1-br$(($MAX_SWITCHES))
+ip link delete br$(($MAX_SWITCHES))-br1
