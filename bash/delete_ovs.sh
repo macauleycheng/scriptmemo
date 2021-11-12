@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-MAX_SWITCHES=3
+MAX_SWITCHES=5
 CTRL_IP=192.168.40.37
 
 curl  -i -XPOST http://$CTRL_IP/mars/useraccount/v1/login --header 'Content-Type: application/json' --header 'Accept: application/json' -d  '{"user_name":"karaf", "password":"karaf"}' > session_temp
@@ -25,7 +25,14 @@ for i in $(seq 1 $(($MAX_SWITCHES -1)));
   done 
 
 
-ip netns delete host1
-ip netns delete host2
+MAX_HOSTS_A_SWITCH=500
+for i in $(seq 1 $MAX_HOSTS_A_SWITCH);
+do
+  ip netns delete host$i
+  ip netns delete host$(($MAX_HOSTS_A_SWITCH + $i))
+  ip link delete host$i_leth
+  ip link delete host$(($MAX_HOSTS_A_SWITCH + $i))_leth
+done
+
 ip link delete br1-br$(($MAX_SWITCHES))
 ip link delete br$(($MAX_SWITCHES))-br1
