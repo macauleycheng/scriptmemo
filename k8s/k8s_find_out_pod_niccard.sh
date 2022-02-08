@@ -15,6 +15,6 @@ nic_card_no=$(sudo nsenter -t $container_pid -n ip address|grep @if|cut -d ':' -
 
 #echo "nic card no" $nic_card_no
 
-nic_card=$(ip link show |grep ^6:|cut -d ':' -f 2|cut -d '@' -f 1)
+nic_card=$(ip link show |grep ^$nic_card_no:|cut -d ':' -f 2|cut -d '@' -f 1)
 
 echo $nic_card
