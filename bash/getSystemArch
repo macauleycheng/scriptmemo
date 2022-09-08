@@ -1,0 +1,5 @@
+HOSTOS="$(uname -s | tr "[:upper:]" "[:lower:"])"
+HOSTARCH="$(uname -m | tr "[:upper:]" "[:lower:"])"
+if [ "$HOSTARCH" == "x86_64" ]; then
+    HOSTARCH="amd64"
+fi
