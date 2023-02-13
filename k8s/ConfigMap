@@ -1,0 +1,11 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: mysql
+  namespace: demo-proj
+  annotations:
+    kubesphere.io/creator: admin
+data:
+  BEMS2.sql: "---"
+  LBS_TW.sql: "---"
+  NativeAppliance.sql: "ll "
