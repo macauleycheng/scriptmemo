@@ -27,6 +27,17 @@ spec:
         - name: volume-s9kqvu
           persistentVolumeClaim:
             claimName: mars-download
+        - name: config-volume
+          configMap:
+            name: mysql
+            items:
+              - key: BEMS2.sql
+                path: BEMS2.sql
+              - key: LBS_TW.sql
+                path: LBS_TW.sql
+              - key: NativeAppliance.sql
+                path: NativeAppliance.sql
+            defaultMode: 420
       containers:
         - name: container-mysql
           image: mysql
@@ -40,9 +51,15 @@ spec:
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: nova
-            - name: MYSQL_DATABASE
-              value: test
+            - name: MYSQL_USER
+              value: meta
+            - name: MYSQL_PASSWORD
+              value: meta@3306
           resources: {}
+          volumeMounts:
+            - name: config-volume
+              readOnly: true
+              mountPath: /docker-entrypoint-initdb.d/
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
