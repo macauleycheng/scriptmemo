@@ -1,0 +1,35 @@
+frr version 8.5.1_git
+frr defaults traditional
+hostname SCSP04838
+no ipv6 forwarding
+!
+router bgp 65501
+bgp router-id 10.147.68.23
+no bgp ebgp-requires-policy
+neighbor 10.147.132.114 remote-as external
+neighbor 10.147.132.114 ebgp-multihop 255
+neighbor 10.147.132.134 remote-as external
+neighbor 10.147.132.134 ebgp-multihop 255
+!
+address-family ipv4 unicast
+  neighbor 10.147.132.114 route-map BLOCK_ALL_IPV4_ROUTES in
+  neighbor 10.147.132.134 route-map BLOCK_ALL_IPV4_ROUTES in
+exit-address-family
+!
+address-family l2vpn evpn
+  neighbor 10.147.132.114 activate
+  neighbor 10.147.132.134 activate
+  advertise-all-vni
+  advertise-svi-ip
+exit-address-family
+exit
+!
+ip prefix-list BLOCK_ALL_IPV4_ROUTES seq 5 permit 0.0.0.0/0
+!
+route-map BLOCK_ALL_IPV4_ROUTES deny 10
+match ip address prefix-list BLOCK_ALL_IPV4_ROUTES
+exit
+!
+ip nht resolve-via-default
+!
+end
