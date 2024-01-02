@@ -79,9 +79,9 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "s1" do |spine1|
     spine1.vm.hostname = "spine1"
-    spine1.vm.network "private_network", virtualbox__intnet: "c1_s1", "ip": '0.0.0.0', auto_network: true
-    spine1.vm.network "private_network", virtualbox__intnet: "s1_l1", "ip": '0.0.0.0', auto_network: true
-    spine1.vm.network "private_network", virtualbox__intnet: "s1_l2", "ip": '0.0.0.0', auto_network: true
+    spine1.vm.network "private_network", virtualbox__intnet: "c1_s1", auto_config: true
+    spine1.vm.network "private_network", virtualbox__intnet: "s1_l1", auto_config: true
+    spine1.vm.network "private_network", virtualbox__intnet: "s1_l2", auto_config: true
     spine1.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.2/32
     vtysh -c "config terminal" -c "router bgp 3000"  -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.2/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
@@ -90,9 +90,9 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "s2" do |spine2|
     spine2.vm.hostname = "spine2"
-    spine2.vm.network "private_network", virtualbox__intnet: "c1_s2", "ip": '0.0.0.0', auto_network: true
-    spine2.vm.network "private_network", virtualbox__intnet: "s2_l1", "ip": '0.0.0.0', auto_network: true
-    spine2.vm.network "private_network", virtualbox__intnet: "s2_l2", "ip": '0.0.0.0', auto_network: true
+    spine2.vm.network "private_network", virtualbox__intnet: "c1_s2", auto_config: true
+    spine2.vm.network "private_network", virtualbox__intnet: "s2_l1", auto_config: true
+    spine2.vm.network "private_network", virtualbox__intnet: "s2_l2", auto_config: true
     spine2.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.3/32
     vtysh -c "config terminal" -c "router bgp 3000"  -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.3/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
@@ -100,9 +100,9 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "l1" do |leaf1|
     leaf1.vm.hostname = "leaf1"
-    leaf1.vm.network "private_network", virtualbox__intnet: "s1_l1", "ip": '0.0.0.0', auto_network: true
-    leaf1.vm.network "private_network", virtualbox__intnet: "s2_l1", "ip": '0.0.0.0', auto_network: true
-    leaf1.vm.network "private_network", virtualbox__intnet: "l1_h1", "ip": '0.0.0.0', auto_network: true
+    leaf1.vm.network "private_network", virtualbox__intnet: "s1_l1", auto_config: true
+    leaf1.vm.network "private_network", virtualbox__intnet: "s2_l1", auto_config: true
+    leaf1.vm.network "private_network", virtualbox__intnet: "l1_h1", auto_config: true
     leaf1.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.4/32
     vtysh -c "config terminal" -c "router bgp 3001" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.4/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
@@ -110,9 +110,9 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "l2" do |leaf2|
     leaf2.vm.hostname = "leaf2"
-    leaf2.vm.network "private_network", virtualbox__intnet: "s2_l2",  "ip": '0.0.0.0', auto_network: true
-    leaf2.vm.network "private_network", virtualbox__intnet: "s1_l2",  "ip": '0.0.0.0', auto_network: true
-    leaf2.vm.network "private_network", virtualbox__intnet: "l2_h2",  "ip": '0.0.0.0', auto_network: true
+    leaf2.vm.network "private_network", virtualbox__intnet: "s2_l2", auto_config: true
+    leaf2.vm.network "private_network", virtualbox__intnet: "s1_l2", auto_config: true
+    leaf2.vm.network "private_network", virtualbox__intnet: "l2_h2", auto_config: true
     leaf2.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.5/32
     vtysh -c "config terminal" -c "router bgp 3002" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.5/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
@@ -120,9 +120,9 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "c1" do |core1|
     core1.vm.hostname = "core1"
-    core1.vm.network "private_network", virtualbox__intnet: "c1_s1", "ip": '0.0.0.0', auto_network: true
-    core1.vm.network "private_network", virtualbox__intnet: "c1_s2", "ip": '0.0.0.0', auto_network: true
-    core1.vm.network "private_network", virtualbox__intnet: "c1_s3", "ip": '0.0.0.0', auto_network: true
+    core1.vm.network "private_network", virtualbox__intnet: "c1_s1", auto_config: true
+    core1.vm.network "private_network", virtualbox__intnet: "c1_s2", auto_config: true
+    core1.vm.network "private_network", virtualbox__intnet: "c1_s3", auto_config: true
     core1.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.1/32
     vtysh -c "config terminal" -c "router bgp 4000" -c "address-family ipv4 unicast" -c "redistribute connected"  -c "exit-address-family" -c "network 10.10.0.1/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"  -c "neighbor eth4 interface remote-as external" -c "neighbor eth4 capability extended-nexthop"
@@ -130,8 +130,8 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "s3" do |spine3|
     spine3.vm.hostname = "spine3"
-    spine3.vm.network "private_network", virtualbox__intnet: "c1_s3", "ip": '0.0.0.0', auto_network: true
-    spine3.vm.network "private_network", virtualbox__intnet: "s3_l3", "ip": '0.0.0.0', auto_network: true
+    spine3.vm.network "private_network", virtualbox__intnet: "c1_s3", auto_config: true
+    spine3.vm.network "private_network", virtualbox__intnet: "s3_l3", auto_config: true
     spine3.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.8/32
     vtysh -c "config terminal" -c "router bgp 8000" -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.8/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"
@@ -139,8 +139,8 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "l3" do |leaf3|
     leaf3.vm.hostname = "leaf3"
-    leaf3.vm.network "private_network", virtualbox__intnet: "s3_l3", "ip": '0.0.0.0', auto_network: true
-    leaf3.vm.network "private_network", virtualbox__intnet: "l3_h3", "ip": '0.0.0.0', auto_network: true
+    leaf3.vm.network "private_network", virtualbox__intnet: "s3_l3", auto_config: true
+    leaf3.vm.network "private_network", virtualbox__intnet: "l3_h3", auto_config: true
     leaf3.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.9/32
     vtysh -c "config terminal" -c "router bgp 8001" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.9/32"  -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"  -c "neighbor eth3 interface remote-as external" -c "neighbor eth3 capability extended-nexthop"
@@ -149,7 +149,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "h1" do |host1|
     host1.vm.hostname = "host1"
-    host1.vm.network "private_network", virtualbox__intnet: "l1_h1", "ip": '0.0.0.0', auto_network: true
+    host1.vm.network "private_network", virtualbox__intnet: "l1_h1", auto_config: true
     host1.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.6/32
     vtysh -c "config terminal" -c "router bgp 5000" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.6/32" -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"
@@ -157,7 +157,7 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "h2" do |host2|
     host2.vm.hostname = "host2"
-    host2.vm.network "private_network", virtualbox__intnet: "l2_h2", "ip": '0.0.0.0', auto_network: true
+    host2.vm.network "private_network", virtualbox__intnet: "l2_h2", auto_config: true
     host2.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.7/32
     vtysh -c "config terminal" -c "router bgp 6000" -c "address-family ipv4 unicast" -c "exit-address-family" -c "network 10.10.0.7/32" -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"
@@ -165,7 +165,7 @@ Vagrant.configure("2") do |config|
   end
   config.vm.define "h3" do |host3|
     host3.vm.hostname = "host3"
-    host3.vm.network "private_network", virtualbox__intnet: "l3_h3", "ip": '0.0.0.0', auto_network: true
+    host3.vm.network "private_network", virtualbox__intnet: "l3_h3", auto_config: true
     host3.vm.provision "shell", inline: <<-SHELL
     ip addr add dev lo 10.10.0.10/32
     vtysh -c "config terminal" -c "router bgp 7000"  -c "address-family ipv4 unicast"  -c "exit-address-family" -c "network 10.10.0.10/32" -c "neighbor eth2 interface remote-as external" -c "neighbor eth2 capability extended-nexthop"
