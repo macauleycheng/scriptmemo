@@ -3,8 +3,8 @@ racks:
   - name: test
     servers: 
       ip4s: [192.168.1.1]
-    dpus: 
-      ip4s: 
+      dpus: 
+        ip4s: 
           - 192.168.2.1
 test: test222
 */
@@ -12,7 +12,7 @@ package main
 
 import (
 	"fmt"
-  "log"
+    "log"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -26,11 +26,11 @@ type config struct {
 type racks struct {
     Name string "yaml:'name' json:'name'"
     Servers servers "yaml:'servers' json:'servers'"
-    Dpus dpus "yaml:'dpus' json:'dpus'"
 }
 
 type servers struct {
     Ip4s []string "yaml:'ip4s' json:'ip4s'"
+    Dpus dpus "yaml:'dpus' json:'dpus'"
 }
 
 type dpus struct {
