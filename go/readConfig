@@ -1,0 +1,59 @@
+/*
+racks:
+  - name: test
+    servers: 
+      ip4s: [192.168.1.1]
+    dpus: 
+      ip4s: 
+          - 192.168.2.1
+test: test222
+*/
+package main    
+
+import (
+	"fmt"
+  "log"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
+type config struct {
+	Test string "yaml:'test' json:'test'"
+	Racks []racks "yaml:'racks' json:'racks'"
+}
+
+type racks struct {
+    Name string "yaml:'name' json:'name'"
+    Servers servers "yaml:'servers' json:'servers'"
+    Dpus dpus "yaml:'dpus' json:'dpus'"
+}
+
+type servers struct {
+    Ip4s []string "yaml:'ip4s' json:'ip4s'"
+}
+
+type dpus struct {
+    Ip4s []string "yaml:'ip4s' json:'ip4s'"
+}
+
+func (c *config) getConf() *config {
+
+    yamlFile, err := os.ReadFile("conf.yaml")
+    if err != nil {
+        log.Printf("yamlFile.Get err   #%v ", err)
+    }
+    err = yaml.Unmarshal(yamlFile, c)
+    if err != nil {
+        log.Fatalf("Unmarshal: %v", err)
+    }
+
+    return c
+}
+
+func main() {
+    var c config
+    c.getConf()
+    fmt.Println(c)
+
+}
